@@ -158,8 +158,15 @@ class ApiService {
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
-      final data = jsonDecode(response.body);
-      throw Exception(data['message'] ?? 'Failed to submit task');
+      String errorMessage = 'Failed to submit task';
+      try {
+        final data = jsonDecode(response.body);
+        errorMessage = data['message'] ?? errorMessage;
+      } catch (_) {
+        // If not JSON, use the status code or a generic message
+        errorMessage = 'Error ${response.statusCode}: ${response.reasonPhrase}';
+      }
+      throw Exception(errorMessage);
     }
   }
 }

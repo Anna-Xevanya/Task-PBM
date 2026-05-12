@@ -153,7 +153,7 @@ class _HomePageState extends State<HomePage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
@@ -199,7 +199,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -216,7 +216,41 @@ class _HomePageState extends State<HomePage> {
 
               if (githubUrl.isEmpty) return;
 
-              Navigator.pop(context);
+              // Close the input dialog using its own context
+              Navigator.pop(dialogContext);
+
+              // Show loading dialog using HomePage context
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (loadingContext) => Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          color: Color(0xFF9E111B),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Mengirim tugas...',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            decoration: TextDecoration.none,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
 
               try {
                 await Provider.of<ApiService>(
@@ -230,15 +264,19 @@ class _HomePageState extends State<HomePage> {
                 );
 
                 if (mounted) {
+                  // Close loading dialog using HomePage context
+                  // This will pop the top-most route (the loading dialog)
+                  Navigator.pop(context);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Row(
                         children: [
-                          const Icon(Icons.send_and_archive, color: Colors.white),
+                          const Icon(Icons.check_circle, color: Colors.white),
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text(
-                              'Task submitted successfully!',
+                              'Tugas berhasil dikirim!',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
                           ),
@@ -255,6 +293,9 @@ class _HomePageState extends State<HomePage> {
                 }
               } catch (e) {
                 if (mounted) {
+                  // Close loading dialog using HomePage context
+                  Navigator.pop(context);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Row(
